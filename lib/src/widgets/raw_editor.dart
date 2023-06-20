@@ -104,6 +104,7 @@ class RawEditor extends StatefulWidget {
 
   /// Additional space around the editor contents.
   final EdgeInsetsGeometry padding;
+
   final Function onCustomMenuItemSelected;
 
   /// Whether the text can be changed.
@@ -321,7 +322,7 @@ class RawEditorState extends EditorState with AutomaticKeepAliveClientMixin<RawE
   final LayerLink _toolbarLayerLink = LayerLink();
   final LayerLink _startHandleLayerLink = LayerLink();
   final LayerLink _endHandleLayerLink = LayerLink();
-
+  late Function onCustomMenuItemSelected;
   TextDirection get _textDirection => Directionality.of(context);
 
   @override
@@ -349,24 +350,26 @@ class RawEditorState extends EditorState with AutomaticKeepAliveClientMixin<RawE
       ),
       ContextMenuButtonItem(
         label: 'Why?',
-        onPressed: () {},
+        onPressed: () {
+          onCustomMenuItemSelected('Why', textEditingValue.text);
+        },
       ),
       ContextMenuButtonItem(
         label: 'How?',
         onPressed: () {
-          // Handle 'How?' action
+          onCustomMenuItemSelected('How', textEditingValue.text);
         },
       ),
       ContextMenuButtonItem(
         label: 'Define',
         onPressed: () {
-          // Handle 'Define' action
+          onCustomMenuItemSelected('Define', textEditingValue.text);
         },
       ),
       ContextMenuButtonItem(
         label: 'Pictures',
         onPressed: () {
-          // Handle 'Pictures' action
+          onCustomMenuItemSelected('Pictures', textEditingValue.text);
         },
       ),
     ];
