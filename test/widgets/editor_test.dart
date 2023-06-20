@@ -1,5 +1,6 @@
 import 'dart:convert' show jsonDecode;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -21,7 +22,11 @@ void main() {
     testWidgets('Keyboard entered text is stored in document', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: QuillEditor.basic(controller: controller, readOnly: false),
+          home: QuillEditor.basic(
+            controller: controller,
+            readOnly: false,
+            onCustomMenuItemSelected: Dada,
+          ),
         ),
       );
       await tester.quillEnterText(find.byType(QuillEditor), 'test\n');
@@ -34,6 +39,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: QuillEditor(
+            onCustomMenuItemSelected: Dada,
             controller: controller,
             focusNode: FocusNode(),
             scrollController: ScrollController(),
@@ -55,23 +61,19 @@ void main() {
       await tester.quillEnterText(find.byType(QuillEditor), 'test\n');
       await tester.idle();
 
-      const uri =
-          'content://com.google.android.inputmethod.latin.fileprovider/test.gif';
-      final messageBytes =
-          const JSONMessageCodec().encodeMessage(<String, dynamic>{
+      const uri = 'content://com.google.android.inputmethod.latin.fileprovider/test.gif';
+      final messageBytes = const JSONMessageCodec().encodeMessage(<String, dynamic>{
         'args': <dynamic>[
           -1,
           'TextInputAction.commitContent',
-          jsonDecode(
-              '{"mimeType": "image/gif", "data": [0,1,0,1,0,1,0,0,0], "uri": "$uri"}'),
+          jsonDecode('{"mimeType": "image/gif", "data": [0,1,0,1,0,1,0,0,0], "uri": "$uri"}'),
         ],
         'method': 'TextInputClient.performAction',
       });
 
       Object? error;
       try {
-        await tester.binding.defaultBinaryMessenger
-            .handlePlatformMessage('flutter/textinput', messageBytes, (_) {});
+        await tester.binding.defaultBinaryMessenger.handlePlatformMessage('flutter/textinput', messageBytes, (_) {});
       } catch (e) {
         error = e;
       }
@@ -79,4 +81,10 @@ void main() {
       expect(latestUri, equals(uri));
     });
   });
+}
+
+void Dada() {
+  if (kDebugMode) {
+    print('in editor_test.dart of quill');
+  }
 }

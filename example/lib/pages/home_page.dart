@@ -47,19 +47,15 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadFromAssets() async {
     try {
-      final result = await rootBundle.loadString(isDesktop()
-          ? 'assets/sample_data_nomedia.json'
-          : 'assets/sample_data.json');
+      final result = await rootBundle.loadString(isDesktop() ? 'assets/sample_data_nomedia.json' : 'assets/sample_data.json');
       final doc = Document.fromJson(jsonDecode(result));
       setState(() {
-        _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+        _controller = QuillController(document: doc, selection: const TextSelection.collapsed(offset: 0));
       });
     } catch (error) {
       final doc = Document()..insert(0, 'Empty asset');
       setState(() {
-        _controller = QuillController(
-            document: doc, selection: const TextSelection.collapsed(offset: 0));
+        _controller = QuillController(document: doc, selection: const TextSelection.collapsed(offset: 0));
       });
     }
   }
@@ -80,18 +76,17 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           IconButton(
-            onPressed: () => _addEditNote(context),
+            onPressed: () => _addEditNote(context, Dada),
             icon: const Icon(Icons.note_add),
           ),
         ],
       ),
       drawer: Container(
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
         color: Colors.grey.shade800,
         child: _buildMenuBar(context),
       ),
-      body: _buildWelcomeEditor(context),
+      body: _buildWelcomeEditor(context, Dada()),
     );
   }
 
@@ -157,8 +152,9 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Widget _buildWelcomeEditor(BuildContext context) {
+  Widget _buildWelcomeEditor(BuildContext context, Function someFunction) {
     Widget quillEditor = QuillEditor(
+      onCustomMenuItemSelected: someFunction,
       controller: _controller!,
       scrollController: ScrollController(),
       scrollable: true,
@@ -186,13 +182,11 @@ class _HomePageState extends State<HomePage> {
             null),
         sizeSmall: const TextStyle(fontSize: 9),
       ),
-      embedBuilders: [
-        ...FlutterQuillEmbeds.builders(),
-        NotesEmbedBuilder(addEditNote: _addEditNote)
-      ],
+      embedBuilders: [...FlutterQuillEmbeds.builders(), NotesEmbedBuilder(addEditNote: _addEditNote)],
     );
     if (kIsWeb) {
       quillEditor = QuillEditor(
+          onCustomMenuItemSelected: someFunction,
           controller: _controller!,
           scrollController: ScrollController(),
           scrollable: true,
@@ -277,8 +271,7 @@ class _HomePageState extends State<HomePage> {
           kIsWeb
               ? Expanded(
                   child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                   child: toolbar,
                 ))
               : Container(child: toolbar)
@@ -304,13 +297,11 @@ class _HomePageState extends State<HomePage> {
   Future<String> _onImagePickCallback(File file) async {
     // Copies the picked file from temporary cache to applications directory
     final appDocDir = await getApplicationDocumentsDirectory();
-    final copiedFile =
-        await file.copy('${appDocDir.path}/${basename(file.path)}');
+    final copiedFile = await file.copy('${appDocDir.path}/${basename(file.path)}');
     return copiedFile.path.toString();
   }
 
-  Future<String?> _webImagePickImpl(
-      OnImagePickCallback onImagePickCallback) async {
+  Future<String?> _webImagePickImpl(OnImagePickCallback onImagePickCallback) async {
     final result = await FilePicker.platform.pickFiles();
     if (result == null) {
       return null;
@@ -329,14 +320,12 @@ class _HomePageState extends State<HomePage> {
   Future<String> _onVideoPickCallback(File file) async {
     // Copies the picked file from temporary cache to applications directory
     final appDocDir = await getApplicationDocumentsDirectory();
-    final copiedFile =
-        await file.copy('${appDocDir.path}/${basename(file.path)}');
+    final copiedFile = await file.copy('${appDocDir.path}/${basename(file.path)}');
     return copiedFile.path.toString();
   }
 
   // ignore: unused_element
-  Future<MediaPickSetting?> _selectMediaPickSetting(BuildContext context) =>
-      showDialog<MediaPickSetting>(
+  Future<MediaPickSetting?> _selectMediaPickSetting(BuildContext context) => showDialog<MediaPickSetting>(
         context: context,
         builder: (ctx) => AlertDialog(
           contentPadding: EdgeInsets.zero,
@@ -359,8 +348,7 @@ class _HomePageState extends State<HomePage> {
       );
 
   // ignore: unused_element
-  Future<MediaPickSetting?> _selectCameraPickSetting(BuildContext context) =>
-      showDialog<MediaPickSetting>(
+  Future<MediaPickSetting?> _selectCameraPickSetting(BuildContext context) => showDialog<MediaPickSetting>(
         context: context,
         builder: (ctx) => AlertDialog(
           contentPadding: EdgeInsets.zero,
@@ -427,13 +415,11 @@ class _HomePageState extends State<HomePage> {
   Future<String> _onImagePaste(Uint8List imageBytes) async {
     // Saves the image to applications directory
     final appDocDir = await getApplicationDocumentsDirectory();
-    final file = await File(
-            '${appDocDir.path}/${basename('${DateTime.now().millisecondsSinceEpoch}.png')}')
-        .writeAsBytes(imageBytes, flush: true);
+    final file = await File('${appDocDir.path}/${basename('${DateTime.now().millisecondsSinceEpoch}.png')}').writeAsBytes(imageBytes, flush: true);
     return file.path.toString();
   }
 
-  Future<void> _addEditNote(BuildContext context, {Document? document}) async {
+  Future<void> _addEditNote(BuildContext context, Function someFunction, {Document? document}) async {
     final isEditing = document != null;
     final quillEditorController = QuillController(
       document: document ?? Document(),
@@ -455,6 +441,7 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
         content: QuillEditor.basic(
+          onCustomMenuItemSelected: someFunction,
           controller: quillEditorController,
           readOnly: false,
         ),
@@ -471,20 +458,20 @@ class _HomePageState extends State<HomePage> {
     final length = controller.selection.extentOffset - index;
 
     if (isEditing) {
-      final offset =
-          getEmbedNode(controller, controller.selection.start).offset;
-      controller.replaceText(
-          offset, 1, block, TextSelection.collapsed(offset: offset));
+      final offset = getEmbedNode(controller, controller.selection.start).offset;
+      controller.replaceText(offset, 1, block, TextSelection.collapsed(offset: offset));
     } else {
       controller.replaceText(index, length, block, null);
     }
   }
+
+  Dada() {}
 }
 
 class NotesEmbedBuilder extends EmbedBuilder {
   NotesEmbedBuilder({required this.addEditNote});
 
-  Future<void> Function(BuildContext context, {Document? document}) addEditNote;
+  Future<void> Function(BuildContext context, Function someFunction, {Document? document}) addEditNote;
 
   @override
   String get key => 'notes';
@@ -509,13 +496,17 @@ class NotesEmbedBuilder extends EmbedBuilder {
           overflow: TextOverflow.ellipsis,
         ),
         leading: const Icon(Icons.notes),
-        onTap: () => addEditNote(context, document: notes),
+        onTap: () => addEditNote(context, dada, document: notes),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: const BorderSide(color: Colors.grey),
         ),
       ),
     );
+  }
+
+  dada() {
+    print('In home_page.dart of Quill Editor');
   }
 }
 
@@ -524,8 +515,7 @@ class NotesBlockEmbed extends CustomBlockEmbed {
 
   static const String noteType = 'notes';
 
-  static NotesBlockEmbed fromDocument(Document document) =>
-      NotesBlockEmbed(jsonEncode(document.toDelta().toJson()));
+  static NotesBlockEmbed fromDocument(Document document) => NotesBlockEmbed(jsonEncode(document.toDelta().toJson()));
 
   Document get document => Document.fromJson(jsonDecode(data));
 }
